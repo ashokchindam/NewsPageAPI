@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        select, button {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #newsContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .news {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .news img {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .news h2 {
+            font-size: 20px;
+        }
+
+        .news a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Latest News</h1>
+        <select id="categorySelect">
+            <option value="general">General</option>
+            <option value="business">Business</option>
+            <option value="technology">Technology</option>
+            <option value="sports">Sports</option>
+            <option value="entertainment">Entertainment</option>
+        </select>
+        <button onclick="fetchNews()">Load News</button>
+    </header>
+    
+    <main id="newsContainer"></main>
+
+    <script>
+        const API_KEY = "80900dcec9c84df894db5369bd93b1b8" // Replace with your actual key!
+        
+        async function fetchNews() {
+            let category = document.getElementById("categorySelect").value;
+            let cacheKey = `news-${category}`;
+            let cachedData = localStorage.getItem(cacheKey);
+            let cacheTime = localStorage.getItem(`${cacheKey}-time`);
+            
+            if (cachedData && cacheTime && (Date.now() - cacheTime < 30 * 60 * 1000)) {
+                displayNews(JSON.parse(cachedData));
+                return;
+            }
+
+            let url = `https://newsapi.org/v2/top-headlines?country=us&category=${category}&apiKey=${API_KEY}`;
+            
+            try {
+                let response = await fetch(url);
+                let data = await response.json();
+
+                localStorage.setItem(cacheKey, JSON.stringify(data.articles)); // Store in cache
+                localStorage.setItem(`${cacheKey}-time`, Date.now());
+
+                displayNews(data.articles);
+            } catch (error) {
+                console.error("Error fetching news:", error);
+                document.getElementById("newsContainer").innerHTML = "<p>Unable to load news. Try again later.</p>";
+            }
+        }
+
+        function displayNews(articles) {
+            let container = document.getElementById("newsContainer");
+            container.innerHTML = "";
+            articles.forEach(article => {
+                let newsItem = `
+                    <div class="news">
+                        <img src="${article.urlToImage}" alt="News Image">
+                        <h2>${article.title}</h2>
+                        <p>${article.description || "No summary available."}</p>
+                        <a href="${article.url}" target="_blank">Read More</a>
+                    </div>`;
+                container.innerHTML += newsItem;
+            });
+        }
+    </script>
+</body>
+</html>
