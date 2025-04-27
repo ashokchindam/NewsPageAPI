@@ -37,7 +37,7 @@
             background-color: #0056b3;
         }
 
-        #newsContainer {
+        #newsContainer, #tollywood-feed {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
@@ -76,17 +76,29 @@
             <option value="technology">Technology</option>
             <option value="sports">Sports</option>
             <option value="entertainment">Entertainment</option>
+            <option value="tollywood">Tollywood</option> <!-- New Category -->
         </select>
         <button onclick="fetchNews()">Load News</button>
     </header>
     
     <main id="newsContainer"></main>
 
+    <section id="tollywood-news">
+        <h2>Tollywood News</h2>
+        <div id="tollywood-feed"></div>
+    </section>
+
     <script>
-        const API_KEY = "80900dcec9c84df894db5369bd93b1b8" // Replace with your actual key!
-        
+        const API_KEY = "80900dcec9c84df894db5369bd93b1b8"; // Replace with your actual key!
+
         async function fetchNews() {
             let category = document.getElementById("categorySelect").value;
+            
+            if (category === "tollywood") {
+                fetchTollywoodNews();
+                return;
+            }
+
             let cacheKey = `news-${category}`;
             let cachedData = localStorage.getItem(cacheKey);
             let cacheTime = localStorage.getItem(`${cacheKey}-time`);
@@ -102,7 +114,7 @@
                 let response = await fetch(url);
                 let data = await response.json();
 
-                localStorage.setItem(cacheKey, JSON.stringify(data.articles)); // Store in cache
+                localStorage.setItem(cacheKey, JSON.stringify(data.articles));
                 localStorage.setItem(`${cacheKey}-time`, Date.now());
 
                 displayNews(data.articles);
@@ -112,19 +124,35 @@
             }
         }
 
-        function displayNews(articles) {
-            let container = document.getElementById("newsContainer");
-            container.innerHTML = "";
-            articles.forEach(article => {
-                let newsItem = `
-                    <div class="news">
-                        <img src="${article.urlToImage}" alt="News Image">
-                        <h2>${article.title}</h2>
-                        <p>${article.description || "No summary available."}</p>
-                        <a href="${article.url}" target="_blank">Read More</a>
-                    </div>`;
-                container.innerHTML += newsItem;
-            });
+        async function fetchTollywoodNews() {
+            const RSS_URL = "https://www.teluguone.com/news/rssDetails.rss";
+            try {
+                let response = await fetch(RSS_URL);
+                let data = await response.text();
+
+                let parser = new DOMParser();
+                let xml = parser.parseFromString(data, "text/xml");
+                let items = xml.querySelectorAll("item");
+
+                let container = document.getElementById("tollywood-feed");
+                container.innerHTML = "";
+
+                items.forEach(item => {
+                    let title = item.querySelector("title").textContent;
+                    let link = item.querySelector("link").textContent;
+                    let description = item.querySelector("description")?.textContent || "No summary available.";
+
+                    let newsItem = `
+                        <div class="news">
+                            <h2>${title}</h2>
+                            <p>${description}</p>
+                            <a href="${link}" target="_blank">Read More</a>
+                        </div>`;
+                    container.innerHTML += newsItem;
+                });
+            } catch (error) {
+                console.error("Error fetching Tollywood news:", error);
+            }
         }
     </script>
 </body>
