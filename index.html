@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>News Dashboard</title>
+    <title>Ashok Chindam News</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -69,20 +69,20 @@
 </head>
 <body>
     <header>
-        <h1>Latest News</h1>
+        <h1>Ashok Chindam News</h1>
         <select id="categorySelect">
             <option value="general">General</option>
             <option value="business">Business</option>
             <option value="technology">Technology</option>
             <option value="sports">Sports</option>
             <option value="entertainment">Entertainment</option>
-            <option value="tollywood">Tollywood</option> <!-- New Category -->
         </select>
         <button onclick="fetchNews()">Load News</button>
     </header>
     
     <main id="newsContainer"></main>
 
+    <!-- Tollywood News Section -->
     <section id="tollywood-news">
         <h2>Tollywood News</h2>
         <div id="tollywood-feed"></div>
@@ -94,11 +94,6 @@
         async function fetchNews() {
             let category = document.getElementById("categorySelect").value;
             
-            if (category === "tollywood") {
-                fetchTollywoodNews();
-                return;
-            }
-
             let cacheKey = `news-${category}`;
             let cachedData = localStorage.getItem(cacheKey);
             let cacheTime = localStorage.getItem(`${cacheKey}-time`);
@@ -154,6 +149,9 @@
                 console.error("Error fetching Tollywood news:", error);
             }
         }
+
+        // Automatically fetch Tollywood news on page load
+        document.addEventListener("DOMContentLoaded", fetchTollywoodNews);
     </script>
 </body>
 </html>
